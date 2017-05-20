@@ -1,0 +1,23 @@
+﻿<!doctype html>
+<html>
+  <head>
+    <script src="https://code.createjs.com/easeljs-0.8.0.min.js"> </script>
+    <script src="https://code.createjs.com/tweenjs-0.6.2.min.js"> </script>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"> </script>
+		<script src="/static/script.js"></script>
+    <title>Canvas Animation</title>   
+		<link rel="stylesheet" type="text/css" href="/static/main.css" >
+</head> 
+	<body ontouchmove="tchmove(event)">
+		<p style="text-align: center; margin:0; padding-top: 10px;">
+			<button onclick=newTable()>
+				<img src="/static/create.png" alt="" style="vertical-align:middle"> 
+				Создать стол
+			</button>
+			<button onclick=connectTable()>
+				<img src="/static/connection.png" alt="" style="vertical-align:middle"> 
+				Подключиться к столу
+			</button>
+		</p>
+  </body>
+</html>
