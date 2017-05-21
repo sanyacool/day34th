@@ -106,13 +106,17 @@ function onConnection(socket) {
 				} else {
 					if (originX < uWeight / 2) {
 						x = xCir - 5;
+						y = yCir;
 						players[userID].x = x - 5;
+						players[userID].y = y;
 						socket.emit("imoved", x, y);
 						socket.broadcast.emit('player moved', socket.id, x, y, players[socket.id].room, players[socket.id].r, players[socket.id].clr);
 					}
 					if (originX > uWeight / 2) {
 						x = xCir + 5;
+						y = yCir;
 						players[userID].x = x + 5;
+						players[userID].y = y;
 						socket.emit("imoved", x, y);
 						socket.broadcast.emit('player moved', socket.id, x, y, players[socket.id].room, players[socket.id].r, players[socket.id].clr);
 					}
