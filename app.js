@@ -13,6 +13,8 @@ app.use("/static", express.static(__dirname + "/static"));
 var players = {};
 var timers = {};
 
+io.on('connection', onConnection);
+
 function onConnection(socket) {
 	
 	socket.on('create table', function(roomID) {
@@ -21,9 +23,8 @@ function onConnection(socket) {
 
 		socket.emit('show players', players);
 
-		socket.on('connected', function(userID, X, Y, color, radius, XCur, YCur, roomID) {
+		socket.on('connected', function(userID, X, Y, color, radius, XCur, YCur, roomID, userW, userH) {
 			console.log("get: ", userID, "  ", X, " ", Y, " ", color, " ", radius, " in room: ", roomID);
-			//console.log('room ' + roomid);
 			players[userID] = {
 				x: X,
 				y: Y,
@@ -33,8 +34,13 @@ function onConnection(socket) {
 				yCur: YCur,
 				room: roomID,
 				timerId: 0,
+				uW: userW,
+				uH: userH,
 			};
-	
+			let uHeight = players[socket.id].uH;
+			let uWeight = players[socket.id].uW;
+			let originX = XCur;
+			let originY = YCur;
 			
 			timers[socket.id] = setInterval(function() {
 				let xCir = players[socket.id].x;
@@ -42,60 +48,75 @@ function onConnection(socket) {
 				let mouseX = players[socket.id].xCur;
 				let mouseY = players[socket.id].yCur;
 				
+				
+				console.log('uW = ' + players[socket.id].uW + ' uH = ' + players[socket.id].uH);
 				console.log("\nxCir = ", xCir,
-										"\nyCir = ", yCir,
-										"\nmouseX = ", mouseX,
-										"\nmouseX = ", mouseY
-										);			
+							"\nyCir = ", yCir,
+							"\nmouseX = ", mouseX,
+							"\nmouseX = ", mouseY);		
 				var x;
 				var y;
-				//console.log(interval(mouseX, xCir));
-				//console.log(interval(mouseY, yCir));
 				
 				if (interval(mouseX, xCir) && interval(mouseY, yCir)) {					
 					console.log("\n      I exit    ");
 					return;
 				}
-				let diffX = mouseX - xCir;
-				let diffY = mouseY - yCir;
-				if (diffX < 0) diffX = -diffX;
-				if (diffY < 0) diffY = -diffY;
 				
-				let speed = 20;
-				let trail = 0;
-				
-				//console.log("calculating");
-				
-				if (diffX > diffY) {
+				if (((xCir < uWeight / 2 - players[socket.id].r - 10) && (originX < uWeight / 2)) || ((xCir > uWeight / 2) && (originX > uWeight / 2))) {
+					let diffX = mouseX - xCir;
+					let diffY = mouseY - yCir;
+					if (diffX < 0) diffX = -diffX;
+					if (diffY < 0) diffY = -diffY;
 					
-					//console.log("dX > dY");
+					let speed = 20;
+					let trail = 0;
 					
-					trail = (diffX * 1.0/speed)
-					if (xCir > mouseX)
-						x = xCir - trail;
-					else 
-						x = xCir + trail;
-					y = ((x - xCir) / (mouseX - xCir) * (mouseY - yCir) + yCir);	
+					//console.log("calculating");
+					
+					if (diffX > diffY) {
+						
+						//console.log("dX > dY");
+						
+						trail = (diffX * 1.0/speed)
+						if (xCir > mouseX)
+							x = xCir - trail;
+						else 
+							x = xCir + trail;
+						y = ((x - xCir) / (mouseX - xCir) * (mouseY - yCir) + yCir);	
+					} else {
+						
+						//console.log("dY > dX");
+						
+						trail = (diffY * 1.0 / speed)
+						if (yCir > mouseY)
+							y = yCir - trail;
+						else 
+							y = yCir + trail;
+						x = ((y - yCir) / (mouseY - yCir) * (mouseX - xCir) + xCir);	
+					}
+					
+					players[userID].x = x;
+					players[userID].y = y;
+					
+					console.log("send: \nx = ", x, "\ny = ", y);
+					console.log("\ncol = ", players[socket.id].r, "\ny = ", players[socket.id].clr);
+					
+					socket.emit("imoved", x, y);
+					socket.broadcast.emit('player moved', socket.id, x, y, players[socket.id].room, players[socket.id].r, players[socket.id].clr);
 				} else {
-					
-					//console.log("dY > dX");
-					
-					trail = (diffY * 1.0 / speed)
-					if (yCir > mouseY)
-						y = yCir - trail;
-					else 
-						y = yCir + trail;
-					x = ((y - yCir) / (mouseY - yCir) * (mouseX - xCir) + xCir);	
-				}
-				
-				players[userID].x = x;
-				players[userID].y = y;
-				
-				console.log("send: \nx = ", x, "\ny = ", y);
-				console.log("\ncol = ", players[socket.id].r, "\ny = ", players[socket.id].clr);
-				
-				socket.emit("imoved", x, y);
-				socket.broadcast.emit('player moved', socket.id, x, y, players[socket.id].room, players[socket.id].r, players[socket.id].clr);
+					if (originX < uWeight / 2) {
+						x = xCir - 5;
+						players[userID].x = x - 5;
+						socket.emit("imoved", x, y);
+						socket.broadcast.emit('player moved', socket.id, x, y, players[socket.id].room, players[socket.id].r, players[socket.id].clr);
+					}
+					if (originX > uWeight / 2) {
+						x = xCir + 5;
+						players[userID].x = x + 5;
+						socket.emit("imoved", x, y);
+						socket.broadcast.emit('player moved', socket.id, x, y, players[socket.id].room, players[socket.id].r, players[socket.id].clr);
+					}
+				};
 				
 			}, 50);
 			
@@ -123,6 +144,7 @@ function onConnection(socket) {
 				players[socket.id].x = x;
 				players[socket.id].y = y;
 			}
+			
 		});
 		socket.on('disconnect', function(){
 			clearInterval(timers[socket.id]);
@@ -141,7 +163,7 @@ function interval(a, b)
 }
 
 
-io.on('connection', onConnection); 
+ 
 
 http.listen(port, function(){
   console.log('listening on *:' + port);

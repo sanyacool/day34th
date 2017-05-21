@@ -11,7 +11,6 @@ var roomId = '';
 
 
 function newTable() {
-
 	roomId = (Math.random().toString(36)).substring(2, 6);
 	alert('Вы создали комнату ' + roomId);
 	socket.emit('create table', roomId);
@@ -28,7 +27,6 @@ function connectTable() {
 };
 
 function wrongTable() {
-
 	roomId = prompt("Неверно введен ID \nВведите ID комнаты", "");
 	if (roomId == null) 
 		return;
@@ -42,6 +40,7 @@ socket.on('connecting', function(playerID) {
 	document.title = "RoomID: " + roomId;
 	document.body.innerHTML = "<div id='my' style='width: " + radius + p + "; height: " +  radius + p + "; background-color: " + color + "'></div>";
 	document.body.innerHTML += "<div id='grid'></div>";
+	document.body.innerHTML += "<div id='ball'> <img src='/static/ball.png' width='100' height='100' alt=''> </div>"
 	
 	//Добавление управляемого объекта
 	var cir = document.getElementById('my');
@@ -51,13 +50,14 @@ socket.on('connecting', function(playerID) {
 	mouseX = cir.style.left;
 	mouseY = cir.style.top;		
 	
+	
 	//Добавление курсора
 	//document.body.innerHTML += "<img id='my_cur' class='cursor' src='/static/cur.png' width='25' height='25'></img>";
 	//cur = document.getElementById('my_cur');
 	
 	//console.log('connecting room ' + roomId)
 	document.addEventListener('mousemove', move);
-	socket.emit('connected', playerID, parseFloat(cir.style.left), parseFloat(cir.style.top), color, radius, parseFloat(mouseX), parseFloat(mouseY), roomId);
+	socket.emit('connected', playerID, parseFloat(cir.style.left), parseFloat(cir.style.top), color, radius, parseFloat(mouseX), parseFloat(mouseY), roomId, window.innerWidth, window.innerHeight);
 });
 			
 //first loading of players
@@ -78,13 +78,10 @@ socket.on('player moved', function(playerID, x, y, room, rad, clr) {
 	console.log('player moved pl: ' + roomId + ' get: ' + room);
 	if (roomId == room) {
 		var cir = document.getElementById(playerID);
-		
 		cir.style.left = x + p;
 		cir.style.top  = y + p;
-		
 		CreateTail(x, y, clr, rad);
 	}
-	
 });
 
 socket.on('create tail', function(playerID, x, y, color, radius, room) {

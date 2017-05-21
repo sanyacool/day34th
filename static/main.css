@@ -4,12 +4,17 @@
 			}
 			#grid {
 				position: absolute;
-				left: 50%;
+				left: 49%;
 				bottom: 0%;
 				width: 1%;
 				height: 100%;
 				background: black;
 				border-radius: 1px 1px 1px 1px;
+			}
+			#ball {
+				position: relative;
+				left: 47%;
+				top: 45%;
 			}
 			html {
 				height: 100%;
